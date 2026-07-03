@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>面积计算器</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --text: #172033;
+        --muted: #657085;
+        --line: #d9deea;
+        --primary: #1769e0;
+        --primary-dark: #0f55b8;
+        --danger: #c23131;
+        --shadow: 0 18px 50px rgba(23, 32, 51, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+        background:
+          linear-gradient(135deg, rgba(23, 105, 224, 0.08), transparent 36%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        width: min(92vw, 560px);
+        margin: 0 auto;
+        padding: 56px 0;
+      }
+
+      .calculator {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      fieldset {
+        margin: 0 0 22px;
+        padding: 0;
+        border: 0;
+      }
+
+      legend,
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 650;
+      }
+
+      .mode-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .mode-option input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .mode-option span {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fbfcff;
+        cursor: pointer;
+        transition:
+          border-color 0.18s ease,
+          background 0.18s ease,
+          color 0.18s ease;
+      }
+
+      .mode-option input:checked + span {
+        border-color: var(--primary);
+        background: #eaf2ff;
+        color: var(--primary-dark);
+      }
+
+      .mode-option input:focus-visible + span,
+      input:focus-visible,
+      button:focus-visible {
+        outline: 3px solid rgba(23, 105, 224, 0.22);
+        outline-offset: 2px;
+      }
+
+      .input-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--text);
+        font: inherit;
+      }
+
+      input[type="number"]:focus {
+        border-color: var(--primary);
+        outline: none;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0 18px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .primary-button {
+        flex: 1;
+        background: var(--primary);
+        color: #ffffff;
+      }
+
+      .primary-button:hover {
+        background: var(--primary-dark);
+      }
+
+      .secondary-button {
+        background: #eef1f7;
+        color: var(--text);
+      }
+
+      .result {
+        margin-top: 22px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcff;
+        line-height: 1.55;
+      }
+
+      .result strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 26px;
+      }
+
+      .error {
+        margin-top: 14px;
+        color: var(--danger);
+        font-weight: 650;
+      }
+
+      @media (max-width: 520px) {
+        main {
+          width: 100%;
+          padding: 20px 14px;
+        }
+
+        .calculator {
+          padding: 20px;
+        }
+
+        .mode-group,
+        .actions {
+          grid-template-columns: 1fr;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="calculator" aria-labelledby="page-title">
+        <h1 id="page-title">面积计算器</h1>
+        <p class="subtitle">选择圆形或方形，输入对应尺寸后计算面积。</p>
+
+        <form id="calculator-form" novalidate>
+          <fieldset>
+            <legend>形状模式</legend>
+            <div class="mode-group" role="radiogroup" aria-label="形状模式">
+              <label class="mode-option">
+                <input type="radio" name="shape" value="circle" checked />
+                <span>圆形</span>
+              </label>
+              <label class="mode-option">
+                <input type="radio" name="shape" value="rectangle" />
+                <span>方形</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div id="circle-fields" class="input-grid">
+            <div>
+              <label for="diameter">直径</label>
+              <input id="diameter" type="number" min="0" step="any" placeholder="请输入直径" inputmode="decimal" />
+            </div>
+          </div>
+
+          <div id="rectangle-fields" class="input-grid hidden">
+            <div>
+              <label for="length">长度</label>
+              <input id="length" type="number" min="0" step="any" placeholder="请输入长度" inputmode="decimal" />
+            </div>
+            <div>
+              <label for="width">宽度</label>
+              <input id="width" type="number" min="0" step="any" placeholder="请输入宽度" inputmode="decimal" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary-button" type="submit">计算面积</button>
+            <button class="secondary-button" type="reset">重置</button>
+          </div>
+
+          <p id="error" class="error" role="alert" hidden></p>
+          <output id="result" class="result" hidden></output>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const form = document.querySelector("#calculator-form");
+      const circleFields = document.querySelector("#circle-fields");
+      const rectangleFields = document.querySelector("#rectangle-fields");
+      const result = document.querySelector("#result");
+      const error = document.querySelector("#error");
+
+      function currentShape() {
+        return form.elements.shape.value;
+      }
+
+      function setShapeFields() {
+        const isCircle = currentShape() === "circle";
+        circleFields.classList.toggle("hidden", !isCircle);
+        rectangleFields.classList.toggle("hidden", isCircle);
+        clearMessage();
+      }
+
+      function parsePositiveNumber(input, name) {
+        const value = Number(input.value);
+        if (!input.value || Number.isNaN(value) || value <= 0) {
+          throw new Error(`请输入有效的${name}，数值必须大于 0。`);
+        }
+        return value;
+      }
+
+      function formatArea(area) {
+        return Number(area.toFixed(4)).toLocaleString("zh-CN");
+      }
+
+      function showResult(label, area) {
+        error.hidden = true;
+        result.hidden = false;
+        result.innerHTML = `${label}面积为 <strong>${formatArea(area)}</strong>`;
+      }
+
+      function showError(message) {
+        result.hidden = true;
+        error.textContent = message;
+        error.hidden = false;
+      }
+
+      function clearMessage() {
+        result.hidden = true;
+        result.textContent = "";
+        error.hidden = true;
+        error.textContent = "";
+      }
+
+      form.addEventListener("change", (event) => {
+        if (event.target.name === "shape") {
+          setShapeFields();
+        }
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        try {
+          if (currentShape() === "circle") {
+            const diameter = parsePositiveNumber(form.elements.diameter, "直径");
+            const radius = diameter / 2;
+            showResult("圆形", Math.PI * radius * radius);
+            return;
+          }
+
+          const length = parsePositiveNumber(form.elements.length, "长度");
+          const width = parsePositiveNumber(form.elements.width, "宽度");
+          showResult("方形", length * width);
+        } catch (validationError) {
+          showError(validationError.message);
+        }
+      });
+
+      form.addEventListener("reset", () => {
+        window.setTimeout(() => {
+          setShapeFields();
+          form.elements.diameter.focus();
+        }, 0);
+      });
+    </script>
+  </body>
+</html>
